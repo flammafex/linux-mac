@@ -2,22 +2,25 @@
 # linux-mac: Custom kernel for Mac Pro 6,1
 
 pkgbase=linux-macpro61
-pkgver=7.0rc1
-pkgrel=1
+pkgver=7.2
+pkgrel=5
 pkgdesc='Custom Linux kernel for Mac Pro 6,1 — CachyOS base, BORE scheduler, built-in drivers'
-install=linux-macpro61.install
 url='https://github.com/wolffcatskyy/linux-mac'
 arch=(x86_64)
 license=(GPL-2.0-only)
 makedepends=(
     bc
+    clang
     cpio
     gettext
+    lld
     libelf
     pahole
     perl
     python
     tar
+    llvm
+    linux-firmware
     xz
     zstd
 )
@@ -27,36 +30,22 @@ options=(
 )
 
 # Kernel source + our config
-# NOTE: .0 releases on kernel.org don't include .0 in the filename
 _major=${pkgver%%.*}
 _minor=${pkgver#*.}
 _minor=${_minor%%.*}
 _srcver=${_major}.${_minor}
-_srcname=linux-7.0-rc1
+_srcname=linux-7.2
 source=(
-    "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/snapshot/linux-7.0-rc1.tar.gz"
-    # no signature for rc tarballs
+    "https://www.kernel.org/pub/linux/kernel/v7.x/linux-7.2.tar.xz"
     "config"
-    "99-macpro.conf"
-    # CachyOS 7.0 patches
     "0001-bore.patch"
-    "0002-bbr3.patch"
-    "0003-cachy.patch"
-    "0004-fixes.patch"
-    "0005-hdmi.patch"
 )
 
 sha256sums=(
-    'SKIP'
-    'SKIP'
-    'SKIP'
-    'SKIP'
-    'SKIP'
-    'SKIP'
-    'SKIP'
-    'SKIP'
+    'f9fef3d14c0df53819026f4be74459835c2a0b0dcbf5b5bbd9ea19f0829402b3'
+    '8b24775823213030d297972559d6a9c11f4e03c3a3030b149d9da2603925e2c0'
+    '18542c05c25a6f18a6660599acaedbb71a78174b013c307597e553615ca33657'
 )
-# No PGP verification for rc tarballs
 
 export KBUILD_BUILD_HOST=macpro61
 export KBUILD_BUILD_USER=linux-mac
@@ -125,7 +114,7 @@ prepare() {
         src="${src%.zst}"
         [[ $src = *.patch ]] || continue
         echo "Applying patch $src..."
-        patch -Np1 --force < "$srcdir/$src" || true
+        patch -Np1 < "$srcdir/$src"
     done
 
 
@@ -216,12 +205,7 @@ build() {
 
 _package() {
     pkgdesc="$pkgdesc - kernel and modules"
-    depends=(
-        coreutils
-        kmod
-    )
-    # No mkinitcpio dependency — everything is built-in
-    # No initramfs needed
+    depends=(mkinitcpio)
 
     cd "$_srcname"
     local modulesdir="$pkgdir/usr/lib/modules/$(<version)"
@@ -229,7 +213,7 @@ _package() {
     echo "Installing boot image..."
     install -Dm644 "$(make -s image_name)" "$modulesdir/vmlinuz"
 
-    # Used by mkinitcpio if someone insists on running it (they shouldn't need to)
+    # Used by mkinitcpio to identify the installed kernel package.
     echo "$pkgbase" | install -Dm644 /dev/stdin "$modulesdir/pkgbase"
 
     echo "Installing modules..."
@@ -238,13 +222,6 @@ _package() {
 
     # Remove build link (set in -headers package)
     rm -f "$modulesdir/build"
-
-    echo "Installing sysctl config..."
-    install -Dm644 "$srcdir/99-macpro.conf" "$pkgdir/etc/sysctl.d/99-macpro.conf"
-
-    # Skip boot entry installation — user manages their own boot entry
-    # See README for systemd-boot setup instructions
-    echo "NOTE: Ensure /boot/loader/entries/linux-macpro61.conf exists with correct PARTUUID"
 }
 
 _package-headers() {
