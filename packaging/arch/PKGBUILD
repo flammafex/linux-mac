@@ -3,7 +3,7 @@
 
 pkgbase=linux-macpro61
 pkgver=7.2.6
-pkgrel=1
+pkgrel=2
 pkgdesc='Custom Linux kernel for Mac Pro 6,1 — CachyOS base, BORE scheduler, built-in drivers'
 url='https://github.com/wolffcatskyy/linux-mac'
 arch=(x86_64)
@@ -123,6 +123,17 @@ prepare() {
     sed -i 's/^# CONFIG_SCHED_BORE is not set/CONFIG_SCHED_BORE=y/' .config
     grep -q "CONFIG_SCHED_BORE=y" .config || echo "CONFIG_SCHED_BORE=y" >> .config
 
+
+    # Mac Pro 6,1 BCM4360 wireless support.
+    # broadcom-wl uses cfg80211/nl80211; keep mac80211 available for
+    # the normal Linux wireless stack as well.
+    echo "Enabling wireless stack..."
+    scripts/config --enable WIRELESS
+    scripts/config --module CFG80211
+    scripts/config --enable CFG80211_WEXT
+    scripts/config --module MAC80211
+    scripts/config --enable WLAN
+
     make olddefconfig
 
     # Force critical drivers to built-in (=y) — olddefconfig may flip them.
@@ -193,6 +204,28 @@ prepare() {
     grep -q "CONFIG_SCHED_BORE=y" .config || echo "WARNING: BORE scheduler not enabled!"
     grep -q "CONFIG_TCP_CONG_BBR=y" .config || echo "WARNING: BBR not built-in!"
     grep -q "CONFIG_BROADCOM_PHY=y" .config || { echo "FATAL: Broadcom PHY not built-in!"; return 1; }
+
+
+    grep -q '^CONFIG_WIRELESS=y$' .config || {
+        echo "FATAL: wireless stack not enabled!"
+        return 1
+    }
+    grep -q '^CONFIG_CFG80211=m$' .config || {
+        echo "FATAL: cfg80211 not enabled as a module!"
+        return 1
+    }
+    grep -q '^CONFIG_CFG80211_WEXT=y$' .config || {
+        echo "FATAL: cfg80211 WEXT compatibility not enabled!"
+        return 1
+    }
+    grep -q '^CONFIG_MAC80211=m$' .config || {
+        echo "FATAL: mac80211 not enabled as a module!"
+        return 1
+    }
+    grep -q '^CONFIG_WLAN=y$' .config || {
+        echo "FATAL: WLAN subsystem not enabled!"
+        return 1
+    }
 
     make -s kernelrelease > version
     echo "Prepared linux version: $(<version)"
