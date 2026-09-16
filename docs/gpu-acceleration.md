@@ -56,7 +56,7 @@ Hardware video decode via AMD's UVD (Unified Video Decoder):
 | H.264 / AVC | Hardware decode |
 | MPEG-2 | Hardware decode |
 | VC-1 | Hardware decode |
-| H.265 / HEVC | Not supported (needs GCN 2.0+) |
+|  / HEVC | Not supported |
 | VP9 / AV1 | Not supported |
 
 ```
@@ -90,12 +90,26 @@ All 6 Mini DisplayPort outputs work (3 per GPU). HDMI via adapter supported. Aud
 
 | Feature | Reason |
 |---------|--------|
-| ROCm / HIP | AMD dropped SI support; minimum is GCN 3.0 (Fiji) |
-| HEVC decode | Hardware UVD too old (GCN 1.0) |
+| ROCm / HIP | AMD dropped Southern Islands support; Requires GCN 3.0+ |
+| H.265 / HEVC decode | Requires GCN 2.0+ |
 | VP9 / AV1 decode | Not present in hardware |
-| DisplayPort MST (daisy-chain) | Not supported by amdgpu SI |
+| DisplayPort MST (daisy-chain) | Not supported by amdgpu Southern Islands |
 | FreeSync / VRR | Requires GCN 2.0+ |
-| Power management (pp_dpm) | PowerPlay sysfs not available for SI GPUs |
+| Power management (pp_dpm) | PowerPlay sysfs not available for Southern Islands GPUs |
+
+## Compared to macOS (OCLP)
+
+Apple dropped macOS support for the 6,1. OCLP tries to bring it back by shimming 2013-era GPU kexts into modern macOS. Here's how the two approaches compare:
+
+| | Linux (this project) | macOS (OCLP) |
+|---|---|---|
+| GPU driver age | 2026 (actively maintained) | 2013 kexts (shimmed) |
+| OpenGL | 4.6 | 4.1 (Apple's last) |
+| Vulkan | 1.3+ via RADV | MoltenVK (translation layer) |
+| Metal | N/A | Shimmed, fragile |
+| Video decode | UVD (H.264) | VDA (similar) |
+| Stability | Solid (native driver) | Breaks on macOS updates |
+| Future | Improving every Mesa release | Deprecated, OCLP may drop 6,1 |
 
 ## Mesa Version Matters
 
@@ -173,31 +187,15 @@ The modprobe config (`/etc/modprobe.d/macpro-gpu.conf`) ensures these persist af
 | Done | Multi-GPU | Both GPUs accessible, DRI_PRIME offload |
 | Done | DP audio | HDMI/DP audio via amdgpu |
 | Investigating | macOS GPU paravirtualization | PVG (ParavirtualizedGraphics) for KVM — Metal commands translated through Mesa on host. See [pvg-linux.md](pvg-linux.md) |
-| Not possible | ROCm / HIP | AMD hardware requirement: GCN 3.0+ |
-| Not possible | HEVC / VP9 / AV1 decode | Hardware limitation |
 
-## macOS Tahoe in KVM
+## macOS Monterey in KVM
 
-This kernel includes KVM support. macOS Tahoe runs in QEMU on top of the accelerated amdgpu kernel driver -- the same driver stack powering the Linux host. The guest runs on real GPU hardware through KVM.
+This kernel includes KVM support. macOS Monterey runs in QEMU on top of the accelerated amdgpu kernel driver -- the same driver stack powering the Linux host. The guest runs on real GPU hardware through KVM.
 
 For exposing Metal/3D to the guest (PVG -- paravirtualizing Metal commands through Mesa on the host), see [pvg-linux.md](pvg-linux.md).
-
-## Compared to macOS (OCLP)
-
-Apple dropped macOS support for the 6,1. OCLP tries to bring it back by shimming 2013-era GPU kexts into modern macOS. Here's how the two approaches compare:
-
-| | Linux (this project) | macOS (OCLP) |
-|---|---|---|
-| GPU driver age | 2026 (actively maintained) | 2013 kexts (shimmed) |
-| OpenGL | 4.6 | 4.1 (Apple's last) |
-| Vulkan | 1.3+ via RADV | MoltenVK (translation layer) |
-| Metal | N/A | Shimmed, fragile |
-| Video decode | UVD (H.264) | VDA (similar) |
-| Stability | Solid (native driver) | Breaks on macOS updates |
-| Future | Improving every Mesa release | Deprecated, OCLP may drop 6,1 |
 
 ## Further Reading
 
 - [mesa.md](mesa.md) -- Mesa setup, environment variables, troubleshooting
 - [pvg-linux.md](pvg-linux.md) -- ParavirtualizedGraphics roadmap for macOS KVM
-- [kvm-macos.md](kvm-macos.md) -- macOS Tahoe KVM setup guide
+- [kvm-macos.md](kvm-macos.md) -- macOS Monterey KVM setup guide

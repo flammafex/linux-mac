@@ -86,32 +86,6 @@ dmesg | grep -iE 'tahiti|pitcairn'
 # No "firmware failed" messages
 ```
 
-## Xorg Configuration (if not using Wayland)
-
-Xorg should auto-detect via modesetting. If you need manual config:
-
-```
-# /etc/X11/xorg.conf.d/20-amdgpu.conf
-Section "Device"
-    Identifier "AMD"
-    Driver "amdgpu"
-    Option "TearFree" "true"
-    Option "DRI" "3"
-EndSection
-```
-
-## Wayland (Sway/Hyprland)
-
-Wayland compositors work well with amdgpu. No special configuration needed beyond installing the compositor:
-
-```bash
-# Sway
-sudo pacman -S sway
-
-# Hyprland
-sudo pacman -S hyprland
-```
-
 ## Troubleshooting
 
 | Issue | Solution |
@@ -120,4 +94,4 @@ sudo pacman -S hyprland
 | Vulkan not detected | Install `vulkan-radeon`, check `vulkaninfo` |
 | Only one GPU visible | Check both cards in `lspci`, verify both have render nodes |
 | Poor OpenGL performance | Enable `mesa_glthread=true` |
-| Screen tearing | Enable TearFree in Xorg or use Wayland |
+| Screen tearing | Use Wayland |

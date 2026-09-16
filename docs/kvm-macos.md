@@ -1,14 +1,4 @@
-# Running macOS Tahoe on Mac Pro 6,1 via KVM
-
-## Why This Works
-
-Apple dropped macOS support for the Mac Pro 6,1. OpenCore Legacy Patcher (OCLP) extends support by shimming deprecated kexts, but Tahoe support is uncertain and may never be complete.
-
-This project takes a different approach: run macOS Tahoe as a KVM guest on a custom Linux kernel tuned for the 6,1 hardware. The Linux kernel handles the hardware directly with modern drivers, and macOS runs in a high-performance virtual machine.
-
-**Right now (Phase 1):** macOS Tahoe boots and runs with software rendering via QXL. CPU-bound tasks run at near-native speed (KVM overhead is 2-5%). The host's amdgpu driver handles display compositing.
-
-**Future (Phase 3):** Full GPU acceleration via open-source PVG host implementation. See [pvg-linux.md](pvg-linux.md) for the roadmap.
+# Running macOS Monterey on Mac Pro 6,1 via KVM
 
 ## Prerequisites
 
@@ -94,7 +84,7 @@ sudo modprobe -r kvm_intel && sudo modprobe kvm_intel
 
 `report_ignored_msrs=0` suppresses kernel log spam from the ignored MSR accesses. Without it, dmesg fills with thousands of warnings.
 
-## Phase 1: macOS Tahoe on QXL (Working)
+## Phase 1: macOS Monterey on QXL (Working)
 
 ### Step 1: Clone OSX-KVM
 
@@ -115,13 +105,13 @@ The key files you get from OSX-KVM:
 | `OVMF_VARS-1920x1080.fd` | UEFI firmware variables (includes resolution setting) |
 | `fetch-macOS-v2.py` | Downloads macOS recovery images from Apple CDN |
 
-### Step 2: Download macOS Tahoe Recovery
+### Step 2: Download macOS Monterey Recovery
 
 Use the OSX-KVM download script -- not `macrecovery.py` from OpenCorePkg.
 
 ```bash
 cd ~/OSX-KVM
-python3 fetch-macOS-v2.py -s tahoe
+python3 fetch-macOS-v2.py -s monterey
 ```
 
 This downloads `BaseSystem.dmg` from Apple's CDN. Convert it to a raw image that QEMU can use:
@@ -142,7 +132,7 @@ This is the working command line. Every flag here was tested and verified on a M
 
 ```bash
 qemu-system-x86_64 \
-    -name "macOS-Tahoe" \
+    -name "macOS-Monterey" \
     -machine q35,accel=kvm,kernel-irqchip=on \
     -cpu host,vendor=GenuineIntel,+invtsc,+hypervisor,kvm=on \
     -smp cores=6,threads=1,sockets=1 \
@@ -211,7 +201,7 @@ You do not need to configure this separately when using OSX-KVM's pre-built imag
 2. A GTK window opens (or connect via SPICE if using remote display)
 3. OpenCore picker appears -- select the recovery/installer entry
 4. Disk Utility -- format the 128GB virtual drive as APFS (GUID partition scheme)
-5. Install macOS Tahoe (downloads remaining files from Apple CDN; requires internet)
+5. Install macOS Monterey (downloads remaining files from Apple CDN; requires internet)
 6. Reboot -- OpenCore boots from installed drive
 7. Complete first-run setup
 

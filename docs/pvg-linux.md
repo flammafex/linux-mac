@@ -2,7 +2,7 @@
 
 ## The Opportunity
 
-QEMU 10.0 introduced `apple-gfx-pci` — a paravirtualized GPU device for macOS guests. macOS 11+ ships built-in PVG (ParavirtualizedGraphics) guest drivers. The **guest side is complete** — no custom kexts needed.
+QEMU 10.0 introduced `apple-gfx-pci` — a paravirtualized GPU device for macOS guests. macOS Big Sur+ ships built-in PVG (ParavirtualizedGraphics) guest drivers. The **guest side is complete** — no custom kexts needed.
 
 The catch: the host side (`ParavirtualizedGraphics.framework`) only exists on macOS. On a Linux host, there's nothing listening.
 
