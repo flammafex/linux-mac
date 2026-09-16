@@ -1,14 +1,15 @@
-#!/usr/bin/env bash
-# macOS Tahoe KVM - Local display (GTK window on Mac Pro screen)
+f#!/usr/bin/env bash
+# macOS Monterey KVM - VNC mode
+# Based on documented launch-macos.sh config
 
 if [ "$(cat /sys/module/kvm/parameters/ignore_msrs)" != "Y" ]; then
     sudo sh -c "echo 1 > /sys/module/kvm/parameters/ignore_msrs"
 fi
 
-REPO_PATH="$(cd "$(dirname "$0")" && pwd)"
+REPO_PATH="."
 
 qemu-system-x86_64 \
-    -name "macOS-Tahoe" \
+    -name "macOS-Monterey" \
     -machine q35,accel=kvm,kernel-irqchip=on \
     -cpu host,vendor=GenuineIntel,+invtsc,+hypervisor,kvm=on \
     -smp cores=6,threads=1,sockets=1 \
@@ -35,7 +36,10 @@ qemu-system-x86_64 \
     -device vmxnet3,netdev=net0 \
     \
     -vga qxl \
-    -display gtk,show-cursor=on \
+    -display vnc=0.0.0.0:1 \
     -device virtio-serial-pci \
     \
-    -monitor stdio
+    -monitor unix:/tmp/qemu-monitor.sock,server,nowait \
+    -daemonize
+
+echo "VM started. VNC on port 5901"

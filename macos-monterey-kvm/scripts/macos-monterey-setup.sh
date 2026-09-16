@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # =============================================================================
-# macOS Tahoe KVM Setup for Mac Pro 6,1
+# macOS Monterey KVM Setup for Mac Pro 6,1
 # =============================================================================
-# Main launcher script — downloads macOS Tahoe recovery, creates pre-configured
+# Main launcher script — downloads macOS Monterey recovery, creates pre-configured
 # QEMU virtual machine, and launches the installer.
 #
 # Target hardware: Mac Pro 6,1 (Late 2013 "Trash Can")
@@ -10,7 +10,7 @@
 #   - Dual AMD FirePro D300/D500/D700
 #   - Thunderbolt 2
 #
-# Usage: ./macos-tahoe-setup.sh [--download-only] [--launch-only] [--passthrough]
+# Usage: ./macos-monterey-setup.sh [--download-only] [--launch-only] [--passthrough]
 # =============================================================================
 
 set -euo pipefail
@@ -25,7 +25,7 @@ OVMF_DIR="${VM_DIR}/ovmf"
 LOG_FILE="${PROJECT_DIR}/setup.log"
 
 # -- VM Config (Mac Pro 6,1 optimised) ----------------------------------------
-VM_NAME="macOS-Tahoe"
+VM_NAME="macOS-Monterey"
 VM_RAM="16G"                  # Mac Pro 6,1 has 12-64GB; 16G is safe default
 VM_CPU_SOCKETS=1
 VM_CPU_CORES=4                # E5-1620v2=4c, E5-1650v2=6c, E5-1680v2=8c
@@ -35,8 +35,8 @@ VM_CPU_FEATURES="+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,+abm,+bmi1,+b
 VM_DISK_SIZE="128G"           # qcow2 sparse, actual usage ~50-60GB after install
 VM_DISPLAY_RES="1920x1080"
 VM_MAC_ADDR="52:54:00:$(openssl rand -hex 3 | sed 's/\(..\)/\1:/g; s/:$//')"
-VM_NET_DEVICE="vmxnet3"       # Better perf than e1000 for Tahoe
-VM_DISK_NAME="macOS-Tahoe.qcow2"
+VM_NET_DEVICE="vmxnet3"       # Better perf than e1000 for Monterey
+VM_DISK_NAME="macOS-Monterey.qcow2"
 
 # -- macOS Recovery Config -----------------------------------------------------
 # Apple's Software Update catalog URLs
@@ -74,7 +74,7 @@ fatal() { err "$*"; exit 1; }
 banner() {
     echo -e "${CYAN}${BOLD}"
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║            macOS Tahoe KVM — Mac Pro 6,1 Edition            ║"
+    echo "║            macOS Monterey KVM — Mac Pro 6,1 Edition            ║"
     echo "╠══════════════════════════════════════════════════════════════╣"
     echo "║  Pre-configured for Late 2013 Mac Pro (Ivy Bridge-EP)      ║"
     echo "║  Xeon E5 · Dual FirePro · Thunderbolt 2                    ║"
@@ -228,7 +228,7 @@ download_ovmf() {
 }
 
 # =============================================================================
-# Download macOS Tahoe recovery image
+# Download macOS Monterey recovery image
 # =============================================================================
 download_recovery() {
     mkdir -p "$RECOVERY_DIR"
@@ -239,7 +239,7 @@ download_recovery() {
         return 0
     fi
 
-    info "Downloading macOS Tahoe recovery image from Apple..."
+    info "Downloading macOS Monterey recovery image from Apple..."
     echo -e "  ${CYAN}This downloads directly from Apple's servers (~700MB)${NC}"
     echo ""
 
@@ -253,7 +253,7 @@ download_recovery() {
         chmod +x "$macrecovery"
     fi
 
-    # Download Tahoe (macOS 26) recovery
+    # Download Monterey recovery
     # Use latest seed catalog for beta/dev builds
     pushd "$RECOVERY_DIR" > /dev/null
     python3 "$macrecovery" \
@@ -306,7 +306,7 @@ create_disk() {
 # Generate QEMU launch script
 # =============================================================================
 generate_launch_script() {
-    local launch_script="${PROJECT_DIR}/launch-macos-tahoe.sh"
+    local launch_script="${PROJECT_DIR}/launch-macos-monterey.sh"
     local disk_path="${VM_DIR}/${VM_DISK_NAME}"
 
     info "Generating QEMU launch script..."
@@ -318,7 +318,7 @@ generate_launch_script() {
         warn "You need to provide an OpenCore EFI image for macOS boot"
         warn "See: https://github.com/Coopydood/ultimate-macOS-KVM/wiki"
         err "CRITICAL: CryptexFixup.kext MUST be included in your OpenCore EFI"
-        err "  Without it, macOS Tahoe will NOT boot in a KVM virtual machine."
+        err "  Without it, macOS Monterey will NOT boot in a KVM virtual machine."
         err "  Get it from: https://github.com/acidanthera/CryptexFixup/releases"
         opencore_img="OPENCORE_IMAGE_PATH_HERE"
     fi
@@ -326,7 +326,7 @@ generate_launch_script() {
     cat > "$launch_script" << 'QEMU_SCRIPT_HEADER'
 #!/usr/bin/env bash
 # =============================================================================
-# macOS Tahoe KVM Launch Script — Mac Pro 6,1
+# macOS Monterey KVM Launch Script — Mac Pro 6,1
 # Auto-generated — edit VM_* variables below to customise
 # =============================================================================
 set -euo pipefail
@@ -402,7 +402,7 @@ GPU_PASSTHROUGH_ARGS=""
 # =============================================================================
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║          Launching macOS Tahoe VM — Mac Pro 6,1             ║"
+echo "║          Launching macOS Monterey VM — Mac Pro 6,1             ║"
 echo "║  RAM: ${VM_RAM} | CPU: ${VM_CPU_CORES}c/${VM_CPU_THREADS}t | Disk: ${DISK_IMG##*/}  "
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
@@ -451,7 +451,7 @@ exec qemu-system-x86_64 \
 QEMU_SCRIPT_BODY
 
     chmod +x "$launch_script"
-    ok "Launch script generated: launch-macos-tahoe.sh"
+    ok "Launch script generated: launch-macos-monterey.sh"
 }
 
 # =============================================================================
@@ -474,7 +474,7 @@ done | sort -t: -k1 -n
 echo ""
 echo "For GPU passthrough, find your FirePro D-series GPU and its audio device."
 echo "They should be in the same IOMMU group."
-echo "Add their PCI addresses to GPU_PASSTHROUGH_ARGS in launch-macos-tahoe.sh"
+echo "Add their PCI addresses to GPU_PASSTHROUGH_ARGS in launch-macos-monterey.sh"
 EOF
     chmod +x "$helper"
     ok "IOMMU helper script created: find-iommu-groups.sh"
@@ -603,7 +603,7 @@ main() {
     echo "    Net:    ${VM_NET_DEVICE} (${VM_MAC_ADDR})"
     echo ""
     echo "  Files:"
-    echo "    Launch script:  ${PROJECT_DIR}/launch-macos-tahoe.sh"
+    echo "    Launch script:  ${PROJECT_DIR}/launch-macos-monterey.sh"
     echo "    Virtual disk:   ${VM_DIR}/${VM_DISK_NAME}"
     echo "    Recovery image: ${RECOVERY_DIR}/BaseSystem.dmg"
     echo ""
@@ -615,25 +615,25 @@ main() {
         echo -e "  ${YELLOW}   Or use ultimate-macOS-KVM's OpenCore Configuration Assistant${NC}"
         echo ""
         echo -e "  ${RED}${BOLD}CRITICAL: CryptexFixup.kext is REQUIRED in your OpenCore EFI${NC}"
-        echo -e "  ${RED}   Without it, macOS Tahoe will NOT boot in a KVM virtual machine.${NC}"
+        echo -e "  ${RED}   Without it, macOS Monterey will NOT boot in a KVM virtual machine.${NC}"
         echo -e "  ${RED}   Download from: https://github.com/acidanthera/CryptexFixup/releases${NC}"
         echo -e "  ${RED}   Add to EFI/OC/Kexts/ and enable in config.plist -> Kernel -> Add${NC}"
         echo ""
     fi
 
     echo -e "  ${CYAN}To launch:${NC}"
-    echo "    ./launch-macos-tahoe.sh"
+    echo "    ./launch-macos-monterey.sh"
     echo ""
     echo -e "  ${CYAN}For GPU passthrough:${NC}"
     echo "    1. sudo ./scripts/find-iommu-groups.sh"
     echo "    2. sudo ./scripts/bind-vfio.sh <GPU_PCI_ADDR>"
-    echo "    3. Edit GPU_PASSTHROUGH_ARGS in launch-macos-tahoe.sh"
+    echo "    3. Edit GPU_PASSTHROUGH_ARGS in launch-macos-monterey.sh"
     echo ""
 
     # Offer to launch now
-    read -rp "Launch macOS Tahoe VM now? [y/N] " answer
+    read -rp "Launch macOS Monterey VM now? [y/N] " answer
     if [[ "$answer" =~ ^[Yy] ]]; then
-        exec "${PROJECT_DIR}/launch-macos-tahoe.sh"
+        exec "${PROJECT_DIR}/launch-macos-monterey.sh"
     fi
 }
 

@@ -1,9 +1,9 @@
-# macOS Tahoe KVM — ISO Integration Guide
+# macOS Monterey KVM — ISO Integration Guide
 
 ## Overview
 
 This toolkit adds a **desktop icon** to your custom Linux ISO that lets customers
-download and run macOS Tahoe in a pre-configured KVM virtual machine. The Mac Pro 6,1
+download and run macOS Monterey in a pre-configured KVM virtual machine. The Mac Pro 6,1
 hardware is auto-detected and the VM is tuned accordingly.
 
 **What's automated:** dependency check, hardware detection, macOS recovery download
@@ -15,9 +15,9 @@ Apple ID).
 ## Files
 
 ```
-macos-tahoe-kvm/
+macos-monterey-kvm/
 ├── scripts/
-│   ├── macos-tahoe-setup.sh          # Main setup + download + configure
+│   ├── macos-monterey-setup.sh          # Main setup + download + configure
 │   ├── install-desktop-launcher.sh   # First-boot: creates desktop icon
 │   ├── find-iommu-groups.sh          # (generated) IOMMU group lister
 │   └── bind-vfio.sh                  # (generated) GPU passthrough helper
@@ -26,8 +26,8 @@ macos-tahoe-kvm/
 ├── vm/                               # (created at runtime)
 │   ├── ovmf/                         # UEFI firmware (auto-downloaded)
 │   ├── recovery/                     # macOS recovery (auto-downloaded)
-│   └── macOS-Tahoe.qcow2            # Virtual disk (auto-created)
-├── launch-macos-tahoe.sh            # (generated) QEMU launch script
+│   └── macOS-Monterey.qcow2            # Virtual disk (auto-created)
+├── launch-macos-monterey.sh            # (generated) QEMU launch script
 └── ISO-INTEGRATION.md               # This file
 ```
 
@@ -35,7 +35,7 @@ macos-tahoe-kvm/
 
 ### 1. Prepare OpenCore EFI
 
-You need an OpenCore EFI image configured for macOS Tahoe on Ivy Bridge-EP.
+You need an OpenCore EFI image configured for macOS Monterey on Ivy Bridge-EP.
 Options:
 
 - **Use ultimate-macOS-KVM's OpenCore assistant** to generate one
@@ -46,8 +46,8 @@ Options:
   - SIP: can leave enabled
   - Boot args: `-v keepsyms=1` (for debug, remove for production)
 
-> **CRITICAL: CryptexFixup.kext is REQUIRED for macOS Tahoe to boot in KVM.**
-> Without this kext, macOS Tahoe will fail to boot in any virtual machine.
+> **CRITICAL: CryptexFixup.kext is REQUIRED for macOS Monterey to boot in KVM.**
+> Without this kext, macOS Monterey will fail to boot in any virtual machine.
 > Download from: https://github.com/acidanthera/CryptexFixup/releases
 > Add to `EFI/OC/Kexts/CryptexFixup.kext` and enable in `config.plist` under
 > `Kernel -> Add`. Recommended boot args: `keepsyms=1 -no_compat_check revpatch=sbvmm,asset`
@@ -58,8 +58,8 @@ Place the image at `opencore-efi/OpenCore.qcow2`.
 
 ```bash
 # In your ISO build script:
-cp -r macos-tahoe-kvm/ ${ISO_ROOT}/opt/macos-tahoe-kvm/
-chmod +x ${ISO_ROOT}/opt/macos-tahoe-kvm/scripts/*.sh
+cp -r macos-monterey-kvm/ ${ISO_ROOT}/opt/macos-monterey-kvm/
+chmod +x ${ISO_ROOT}/opt/macos-monterey-kvm/scripts/*.sh
 ```
 
 ### 3. First-boot hook
@@ -68,7 +68,7 @@ chmod +x ${ISO_ROOT}/opt/macos-tahoe-kvm/scripts/*.sh
 
 ```bash
 # In your ISO's post-install or first-boot script:
-/opt/macos-tahoe-kvm/scripts/install-desktop-launcher.sh --systemd
+/opt/macos-monterey-kvm/scripts/install-desktop-launcher.sh --systemd
 ```
 
 This creates a oneshot systemd service that runs once, creates the desktop
@@ -77,7 +77,7 @@ icon for all users, then disables itself.
 **Option B: Systemd + prefetch**
 
 ```bash
-/opt/macos-tahoe-kvm/scripts/install-desktop-launcher.sh --systemd --prefetch
+/opt/macos-monterey-kvm/scripts/install-desktop-launcher.sh --systemd --prefetch
 ```
 
 Same as above, but also starts downloading the macOS recovery image in the
@@ -88,7 +88,7 @@ clicks the icon, if it's already done, setup skips straight to VM config.
 
 ```bash
 # In /etc/rc.local or equivalent:
-/opt/macos-tahoe-kvm/scripts/install-desktop-launcher.sh
+/opt/macos-monterey-kvm/scripts/install-desktop-launcher.sh
 ```
 
 ### 4. Dependencies
@@ -112,14 +112,14 @@ intel_iommu=on iommu=pt
 ## Customer Flow
 
 1. Boot your Linux ISO on Mac Pro 6,1
-2. Desktop shows "macOS Tahoe KVM" icon
+2. Desktop shows "macOS Monterey KVM" icon
 3. Click icon → terminal opens with setup wizard
 4. Setup auto-detects hardware (CPU cores, RAM, GPUs)
-5. Downloads macOS Tahoe recovery from Apple (~700MB, ~5min)
+5. Downloads macOS Monterey recovery from Apple (~700MB, ~5min)
 6. Creates pre-configured VM (disk, QEMU args, network)
 7. Launches VM → macOS installer appears
 8. Customer walks through macOS install (15-30min)
-9. After install, delete recovery image, re-launch with `./launch-macos-tahoe.sh`
+9. After install, delete recovery image, re-launch with `./launch-macos-monterey.sh`
 
 ## GPU Passthrough (Optional)
 
@@ -127,17 +127,17 @@ For customers who want native GPU acceleration in the macOS VM:
 
 ```bash
 # 1. Find the FirePro GPU PCI addresses
-sudo /opt/macos-tahoe-kvm/scripts/find-iommu-groups.sh
+sudo /opt/macos-monterey-kvm/scripts/find-iommu-groups.sh
 
 # 2. Bind GPUs to vfio-pci
-sudo /opt/macos-tahoe-kvm/scripts/bind-vfio.sh 03:00.0 03:00.1
+sudo /opt/macos-monterey-kvm/scripts/bind-vfio.sh 03:00.0 03:00.1
 
 # 3. Edit launch script — uncomment GPU_PASSTHROUGH_ARGS
 #    and fill in the PCI addresses
-nano /opt/macos-tahoe-kvm/launch-macos-tahoe.sh
+nano /opt/macos-monterey-kvm/launch-macos-monterey.sh
 
 # 4. Launch
-./launch-macos-tahoe.sh
+./launch-macos-monterey.sh
 ```
 
 **Note:** GPU passthrough means the host Linux loses display output on that GPU.
@@ -146,7 +146,7 @@ for the host.
 
 ## Customisation
 
-Edit the `VM_*` variables at the top of `scripts/macos-tahoe-setup.sh`:
+Edit the `VM_*` variables at the top of `scripts/macos-monterey-setup.sh`:
 
 | Variable | Default | Notes |
 |----------|---------|-------|
@@ -170,4 +170,4 @@ to retry without launching.
 cmdline. On the Mac Pro 6,1, IOMMU is supported but must be enabled.
 
 **macOS installer doesn't see disk** — Format the virtual disk in Disk Utility
-first (APFS for Tahoe). The 128G qcow2 will appear as a physical disk.
+first (APFS for Monterey). The 128G qcow2 will appear as a physical disk.

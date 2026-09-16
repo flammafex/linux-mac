@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# First-boot script: Creates desktop launcher for macOS Tahoe KVM
+# First-boot script: Creates desktop launcher for macOS Monterey KVM
 # =============================================================================
 # Add this to your Linux ISO's first-boot sequence (systemd oneshot, rc.local,
 # or autostart). It creates:
@@ -9,7 +9,7 @@
 #   3. An unattended pre-download option (optional, via --prefetch)
 #
 # Usage in your ISO build:
-#   - Copy this entire macos-tahoe-kvm/ directory to /opt/macos-tahoe-kvm/
+#   - Copy this entire macos-monterey-kvm/ directory to /opt/macos-monterey-kvm/
 #   - Add install-desktop-launcher.sh to first-boot
 # =============================================================================
 
@@ -17,8 +17,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-INSTALL_DIR="/opt/macos-tahoe-kvm"
-ICON_NAME="macos-tahoe-kvm"
+INSTALL_DIR="/opt/macos-monterey-kvm"
+ICON_NAME="macos-monterey-kvm"
 
 # -- Icon (embedded SVG) -------------------------------------------------------
 create_icon() {
@@ -73,13 +73,13 @@ create_system_desktop_entry() {
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=macOS Tahoe KVM
+Name=macOS Monterey KVM
 GenericName=macOS Virtual Machine
-Comment=Download and run macOS Tahoe in a pre-configured KVM virtual machine (Mac Pro 6,1)
-Exec=bash -c 'cd ${INSTALL_DIR} && terminal_cmd=\$(which gnome-terminal 2>/dev/null || which xfce4-terminal 2>/dev/null || which konsole 2>/dev/null || which xterm 2>/dev/null) && case \$terminal_cmd in *gnome*) \$terminal_cmd -- bash ${INSTALL_DIR}/scripts/macos-tahoe-setup.sh;; *xfce4*) \$terminal_cmd -e "bash ${INSTALL_DIR}/scripts/macos-tahoe-setup.sh";; *konsole*) \$terminal_cmd -e bash ${INSTALL_DIR}/scripts/macos-tahoe-setup.sh;; *) \$terminal_cmd -e "bash ${INSTALL_DIR}/scripts/macos-tahoe-setup.sh";; esac'
+Comment=Download and run macOS Monterey in a pre-configured KVM virtual machine (Mac Pro 6,1)
+Exec=bash -c 'cd ${INSTALL_DIR} && terminal_cmd=\$(which gnome-terminal 2>/dev/null || which xfce4-terminal 2>/dev/null || which konsole 2>/dev/null || which xterm 2>/dev/null) && case \$terminal_cmd in *gnome*) \$terminal_cmd -- bash ${INSTALL_DIR}/scripts/macos-monterey-setup.sh;; *xfce4*) \$terminal_cmd -e "bash ${INSTALL_DIR}/scripts/macos-monterey-setup.sh";; *konsole*) \$terminal_cmd -e bash ${INSTALL_DIR}/scripts/macos-monterey-setup.sh;; *) \$terminal_cmd -e "bash ${INSTALL_DIR}/scripts/macos-monterey-setup.sh";; esac'
 Icon=${ICON_NAME}
 Categories=System;Emulator;Virtualization;
-Keywords=macOS;Apple;KVM;QEMU;Tahoe;Virtual;Machine;
+Keywords=macOS;Apple;KVM;QEMU;Monterey;Virtual;Machine;
 Terminal=false
 StartupNotify=true
 EOF
@@ -154,11 +154,11 @@ fi
 
 cd "$SCRIPT_DIR"
 case "$TERMINAL" in
-    gnome-terminal) exec $TERMINAL --title="macOS Tahoe KVM Setup" -- bash scripts/macos-tahoe-setup.sh ;;
-    xfce4-terminal) exec $TERMINAL --title="macOS Tahoe KVM Setup" -e "bash scripts/macos-tahoe-setup.sh" ;;
-    konsole)        exec $TERMINAL --title "macOS Tahoe KVM Setup" -e bash scripts/macos-tahoe-setup.sh ;;
-    mate-terminal)  exec $TERMINAL --title="macOS Tahoe KVM Setup" -e "bash scripts/macos-tahoe-setup.sh" ;;
-    *)              exec $TERMINAL -e "bash scripts/macos-tahoe-setup.sh" ;;
+    gnome-terminal) exec $TERMINAL --title="macOS Monterey KVM Setup" -- bash scripts/macos-monterey-setup.sh ;;
+    xfce4-terminal) exec $TERMINAL --title="macOS Monterey KVM Setup" -e "bash scripts/macos-monterey-setup.sh" ;;
+    konsole)        exec $TERMINAL --title "macOS Monterey KVM Setup" -e bash scripts/macos-monterey-setup.sh ;;
+    mate-terminal)  exec $TERMINAL --title="macOS Monterey KVM Setup" -e "bash scripts/macos-monterey-setup.sh" ;;
+    *)              exec $TERMINAL -e "bash scripts/macos-monterey-setup.sh" ;;
 esac
 WRAPPER
     chmod +x "${INSTALL_DIR}/launch-gui.sh"
@@ -169,25 +169,25 @@ WRAPPER
 prefetch_recovery() {
     if [ "${1:-}" = "--prefetch" ]; then
         echo "[INFO] Pre-fetching macOS recovery in background..."
-        nohup bash "${INSTALL_DIR}/scripts/macos-tahoe-setup.sh" --download-only \
-            > /var/log/macos-tahoe-prefetch.log 2>&1 &
+        nohup bash "${INSTALL_DIR}/scripts/macos-monterey-setup.sh" --download-only \
+            > /var/log/macos-monterey-prefetch.log 2>&1 &
         echo "[OK] Recovery download started in background (PID: $!)"
-        echo "     Log: /var/log/macos-tahoe-prefetch.log"
+        echo "     Log: /var/log/macos-monterey-prefetch.log"
     fi
 }
 
 # -- Systemd service for first-boot (optional) ---------------------------------
 create_firstboot_service() {
-    cat > /etc/systemd/system/macos-tahoe-setup.service << EOF
+    cat > /etc/systemd/system/macos-monterey-setup.service << EOF
 [Unit]
-Description=macOS Tahoe KVM — First Boot Desktop Icon Setup
+Description=macOS Monterey KVM — First Boot Desktop Icon Setup
 After=graphical.target
-ConditionPathExists=!/var/lib/macos-tahoe-kvm-installed
+ConditionPathExists=!/var/lib/macos-monterey-kvm-installed
 
 [Service]
 Type=oneshot
 ExecStart=${INSTALL_DIR}/scripts/install-desktop-launcher.sh
-ExecStartPost=/bin/touch /var/lib/macos-tahoe-kvm-installed
+ExecStartPost=/bin/touch /var/lib/macos-monterey-kvm-installed
 RemainAfterExit=yes
 
 [Install]
@@ -195,7 +195,7 @@ WantedBy=multi-user.target
 EOF
 
     systemctl daemon-reload
-    systemctl enable macos-tahoe-setup.service
+    systemctl enable macos-monterey-setup.service
     echo "[OK] First-boot systemd service installed and enabled"
 }
 
@@ -204,7 +204,7 @@ EOF
 # =============================================================================
 main() {
     echo "════════════════════════════════════════════════════════"
-    echo "  macOS Tahoe KVM — Desktop Launcher Installer"
+    echo "  macOS Monterey KVM — Desktop Launcher Installer"
     echo "════════════════════════════════════════════════════════"
     echo ""
 
@@ -220,9 +220,9 @@ main() {
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=macOS Tahoe KVM
-Comment=macOS Tahoe virtual machine (Mac Pro 6,1)
-Exec=bash -c 'cd ${PROJECT_DIR} && gnome-terminal -- bash scripts/macos-tahoe-setup.sh 2>/dev/null || xterm -e "bash scripts/macos-tahoe-setup.sh"'
+Name=macOS Monterey KVM
+Comment=macOS Monterey virtual machine (Mac Pro 6,1)
+Exec=bash -c 'cd ${PROJECT_DIR} && gnome-terminal -- bash scripts/macos-monterey-setup.sh 2>/dev/null || xterm -e "bash scripts/macos-monterey-setup.sh"'
 Icon=computer
 Categories=System;Emulator;
 Terminal=false
@@ -277,13 +277,13 @@ EOF
     echo "════════════════════════════════════════════════════════"
     echo "  ✓ Installation complete"
     echo ""
-    echo "  Desktop icon: 'macOS Tahoe KVM'"
+    echo "  Desktop icon: 'macOS Monterey KVM'"
     echo "  Application:  /usr/share/applications/${ICON_NAME}.desktop"
     echo "  Install dir:  ${INSTALL_DIR}"
     echo ""
     echo "  Integration into your ISO:"
-    echo "    1. Copy macos-tahoe-kvm/ to /opt/macos-tahoe-kvm/"
-    echo "    2. Run: /opt/macos-tahoe-kvm/scripts/install-desktop-launcher.sh --systemd"
+    echo "    1. Copy macos-monterey-kvm/ to /opt/macos-monterey-kvm/"
+    echo "    2. Run: /opt/macos-monterey-kvm/scripts/install-desktop-launcher.sh --systemd"
     echo "    3. (Optional) Add --prefetch to start download on first boot"
     echo "════════════════════════════════════════════════════════"
 }
