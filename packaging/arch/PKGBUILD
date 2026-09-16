@@ -2,8 +2,8 @@
 # linux-mac: Custom kernel for Mac Pro 6,1
 
 pkgbase=linux-macpro61
-pkgver=7.2
-pkgrel=5
+pkgver=7.2.6
+pkgrel=1
 pkgdesc='Custom Linux kernel for Mac Pro 6,1 — CachyOS base, BORE scheduler, built-in drivers'
 url='https://github.com/wolffcatskyy/linux-mac'
 arch=(x86_64)
@@ -34,17 +34,17 @@ _major=${pkgver%%.*}
 _minor=${pkgver#*.}
 _minor=${_minor%%.*}
 _srcver=${_major}.${_minor}
-_srcname=linux-7.2
+_srcname=linux-7.2.6
 source=(
-    "https://www.kernel.org/pub/linux/kernel/v7.x/linux-7.2.tar.xz"
+    "https://www.kernel.org/pub/linux/kernel/v7.x/linux-7.2.6.tar.xz"
     "config"
     "0001-bore.patch"
 )
 
 sha256sums=(
-    'f9fef3d14c0df53819026f4be74459835c2a0b0dcbf5b5bbd9ea19f0829402b3'
-    '8b24775823213030d297972559d6a9c11f4e03c3a3030b149d9da2603925e2c0'
-    '18542c05c25a6f18a6660599acaedbb71a78174b013c307597e553615ca33657'
+    '039aef84f2b0994aeda3f4fcfc3d02ec9d7a9bbb9020ea264c43f446c860f606'
+    'af79997358416ca8e77936acb9445a7276cea191bab16941dce888940deebeac'
+    '0c0be2b95ee10d8123bdd229699d441d989b62f52be355e4c94524d350dc786e'
 )
 
 export KBUILD_BUILD_HOST=macpro61
@@ -240,6 +240,7 @@ _package-headers() {
 
     echo "Installing objtool..."
     install -Dt "$builddir/tools/objtool" -m755 tools/objtool/objtool
+    install -Dt "$builddir/tools/bpf/resolve_btfids" -m755 tools/bpf/resolve_btfids/resolve_btfids
 
     echo "Installing headers..."
     cp -t "$builddir" -a include
