@@ -8,7 +8,7 @@ A kernel config and PKGBUILD for Linux 7.2.6 (the latest as of 09/15/2026) targe
 
 - **All GPU variants** — D300 (Pitcairn), D500 (Tahiti), D700 (Tahiti XT), firmware baked in
 - **CachyOS performance** — BORE scheduler, BBR3 congestion control, `-march=ivybridge -O3`
-- **KVM built-in** — run macOS Tahoe in QEMU
+- **KVM built-in** — run macOS Monterey in QEMU
 - **NVMe + TRIM** — aftermarket NVMe drives work out of the box
 
 ## Hardware Support
@@ -26,7 +26,7 @@ A kernel config and PKGBUILD for Linux 7.2.6 (the latest as of 09/15/2026) targe
 | Thunderbolt 2 | Partial | Works with log spam |
 | NVMe + TRIM | Working | Built-in; enable `fstrim.timer` |
 | Bluetooth | Working | Broadcom via btusb |
-| KVM | Working | macOS Tahoe virtualization (without GPU passthrough for now) |
+| KVM | Working | macOS Monterey virtualization (without GPU passthrough for now) |
 | Fans / Thermal | Working | applesmc + hwmon; install `macfanctld` (AUR) |
 | Sleep/Wake | Disabled | Unreliable on this hardware |
 
@@ -55,7 +55,7 @@ sudo poweroff  # Apple EFI needs cold boot — never reboot when switching kerne
 
 - [GPU Acceleration Guide](docs/gpu-acceleration.md) -- full stack explainer, what works, performance tuning, roadmap
 - [Mesa Setup](docs/mesa.md) -- driver config, environment variables, multi-GPU
-- [macOS Tahoe KVM](docs/kvm-macos.md) -- run macOS in a VM on this kernel (without GPU passthrough)
+- [macOS Monterey KVM](docs/kvm-macos.md) -- run macOS in a VM on this kernel (without GPU passthrough)
 - [PVG Roadmap](docs/pvg-linux.md) -- GPU acceleration for macOS VMs
 - [CachyOS ISO](https://github.com/flammafex/cachyos-macpro-iso) -- ready-to-build installer ISO
 
@@ -65,7 +65,7 @@ sudo poweroff  # Apple EFI needs cold boot — never reboot when switching kerne
 |--------|-----------|
 | Done | CachyOS 08/09/2026 base with BORE, BBR3, built-in amdgpu |
 | Done | All GPU variants, verified against lspci |
-| Done | KVM + macOS Tahoe virtualization |
+| Done | KVM + macOS Monterey virtualization |
 | Done | CachyOS-based Mac Pro ISO (KDE Plasma) — [cachyos-macpro-iso](https://github.com/flammafex/cachyos-macpro-iso) |
 | Done | Driver trimming — removed ~3000 unused config options for faster builds |
 
