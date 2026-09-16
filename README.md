@@ -4,7 +4,7 @@ Custom Linux kernel for the Mac Pro 6,1 (Late 2013). CachyOS-based with BORE sch
 
 ## What This Is
 
-A kernel config and PKGBUILD for Linux 7.0 targeting Mac Pro 6,1 hardware. CachyOS 7.0 base with BORE scheduler and BBR3, Mac Pro drivers built-in, GPU firmware embedded in kernel.
+A kernel config and PKGBUILD for Linux 7.2.6 targeting Mac Pro 6,1 hardware. CachyOS 7.2 base with BORE scheduler and BBR3, Mac Pro drivers built-in, GPU firmware embedded in kernel.
 
 - **All GPU variants** — D300 (Pitcairn), D500 (Tahiti), D700 (Tahiti XT), firmware baked in
 - **CachyOS performance** — BORE scheduler, BBR3 congestion control, `-march=ivybridge -O3`
@@ -46,7 +46,7 @@ sudo poweroff  # Apple EFI needs cold boot — never reboot when switching kerne
 
 ## CachyOS Patches
 
-Built on the CachyOS 7.0 patch set:
+Built on the CachyOS 7.2 patch set:
 - **BORE** — Burst-Oriented Response Enhancer scheduler
 - **BBR3** — Google TCP congestion control v3
 - **CachyOS tweaks** — kernel optimizations
@@ -64,7 +64,7 @@ Built on the CachyOS 7.0 patch set:
 
 | Status | Milestone |
 |--------|-----------|
-| Done | CachyOS 7.0 base with BORE, BBR3, built-in amdgpu |
+| Done | CachyOS 7.2.6 base with BORE, BBR3, built-in amdgpu |
 | Done | All GPU variants, verified against lspci |
 | Done | KVM + macOS Tahoe virtualization |
 | Done | CachyOS-based Mac Pro ISO (KDE Plasma) — [cachyos-macpro-iso](https://github.com/wolffcatskyy/cachyos-macpro-iso) |

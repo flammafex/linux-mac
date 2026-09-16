@@ -20,11 +20,13 @@
 
 ## Performance Patches
 
-Built on CachyOS 7.0 patch set:
+Built on CachyOS 7.2 patch set:
 - **BORE** scheduler (Burst-Oriented Response Enhancer)
 - **BBR3** TCP congestion control
 - CachyOS kernel tweaks and fixes
 - HDMI improvements
+- **BORE 6.8.0 forward-port** — upstream patch targets 7.2-rc5; `fair.c` hunks realigned to 7.2.6, `update_curr` hook inside the `entity_is_task()` guard. Do not refresh from the upstream CachyOS 7.2 patch (identical stale hunks).
+- **DRM_GUD disabled** — unneeded USB-display driver trips clang `_FORTIFY_SOURCE` on `gud_connector.c`; re-enable only with an upstream fix
 
 ## GPU Details
 
@@ -33,7 +35,7 @@ The D700 is based on AMD's Tahiti XT GPU (same silicon as the Radeon HD 7970). I
 - **Kernel driver:** `amdgpu` built into kernel (`=y`) with SI support — requires `CONFIG_DRM_AMDGPU_SI=y`
 - **Firmware:** Tahiti: `tahiti_{ce,mc,me,pfp,rlc,smc}.bin` — Pitcairn: `pitcairn_{ce,mc,me,pfp,rlc,smc}.bin`
 - **Mesa driver:** `radeonsi` (OpenGL), `RADV` (Vulkan)
-- **Kernel 7.0:** Mature amdgpu SI support
+- **Kernel 7.2:** Mature amdgpu SI support
 
 ## Hardware Compatibility Matrix
 
