@@ -3,7 +3,7 @@
 
 pkgbase=linux-macpro61
 pkgver=7.3
-pkgrel=1
+pkgrel=2
 pkgdesc='Custom Linux kernel for Mac Pro 6,1 — CachyOS base, BORE scheduler, built-in drivers'
 url='https://github.com/wolffcatskyy/linux-mac'
 arch=(x86_64)
@@ -40,12 +40,14 @@ source=(
     "config"
     "0001-bore.patch"
     "0002-macpro61-amdgpu-si-dpm-performance.patch"
+    "0003-al-sa-hda-cs420x-fix-MacPro61-jack-detect.patch"
 )
 
 sha256sums=('87363c24f10e06321eb362765521094e94471f6bff8bce2d6b3e40f39f004953'
             '428c65895a0c5cb18df329379c3cc493da42c5cbfd636433aa21d781c7836eec'
             'f9213db6375a821977adacba1f7071a3d87bf5d3778550c1a1177a1606612fc9'
-            '0eaf6106010e0324cf4e29821c86bb15ab762bcd588cc59551c12a6ac24ca929')
+            '0eaf6106010e0324cf4e29821c86bb15ab762bcd588cc59551c12a6ac24ca929'
+            'b2070dd9bd54c60a33808aab2ce7470fe0377d5c16dbbc6adebf2aa953d3043f')
 
 export KBUILD_BUILD_HOST=macpro61
 export KBUILD_BUILD_USER=linux-mac

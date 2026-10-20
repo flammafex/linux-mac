@@ -46,7 +46,7 @@ The matrix below records prior experience with the 7.2-based kernel and should n
 ### Linux 7.3 Live-ISO Observations
 
 - **Ethernet:** BCM57762 NICs bound to `tg3`; `enp11s0` linked and passed 5/5 pings to `1.1.1.1`. `enp12s0` was `NO-CARRIER`, not tested.
-- **Audio:** CS4208 analog and HDMI devices enumerated; audible playback was not reported.
+- **Audio:** CS4208 analog and HDMI devices enumerated; audible playback was not reported. Upstream v7.3 commit `82cfab6a5262` (MacBookAir 7,2 CS4208 quirk keyed on shared PCI SSID `8086:7270`) shadows the Mac Pro 6,1 codec-SSID quirk, so the inverted headphone jack sense is lost and headphones report as unplugged. `0003-al-sa-hda-cs420x-fix-MacPro61-jack-detect.patch` matches the Mac Pro entry by codec SSID via `HDA_CODEC_QUIRK()` to restore it.
 - **Wi-Fi:** BCM4360 bound to `bcma-pci-bridge`; wireless connectivity was not reported.
 - **Storage/USB:** NVMe advertised discard. An xHCI USB 3 root hub was present; attached storage ran at 480M, with no USB 3 speed test.
 - **Thermal:** `applesmc` reported fan speed of 791 RPM and thermal telemetry; `macfanctld` returned `failed` from `systemctl is-active`.
