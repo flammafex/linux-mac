@@ -20,12 +20,13 @@
 
 ## Performance Patches
 
-Built on CachyOS 7.2 patch set:
+These notes distinguish the historical CachyOS 7.2 baseline from observed Linux 7.3 live-ISO results. The BORE and AMDGPU patches apply to 7.3; package preparation and a repeat `olddefconfig` preserve the critical built-in drivers. The `linux-macpro61` 7.3-1 kernel and headers packages built successfully. A CachyOS MacPro ArchISO booted on a Mac Pro 6,1 (`uname -r`: `7.3.0-macpro61`). This does not mean the CachyOS patch set was refreshed wholesale for 7.3.
+
 - **BORE** scheduler (Burst-Oriented Response Enhancer)
 - **BBR3** TCP congestion control
 - CachyOS kernel tweaks and fixes
 - HDMI improvements
-- **BORE 6.8.0 forward-port** — upstream patch targets 7.2-rc5; `fair.c` hunks realigned to 7.2.6, `update_curr` hook inside the `entity_is_task()` guard. Do not refresh from the upstream CachyOS 7.2 patch (identical stale hunks).
+- **BORE 6.8.0 forward-port** — the original forward-port targeted 7.2-rc5, with `fair.c` hunks realigned to 7.2.6 and the `update_curr` hook inside the `entity_is_task()` guard. The carried patch has been adjusted to apply to 7.3; `fair.o` and `bore.o` compiled in a patched scratch tree. This is a targeted port, not a wholesale CachyOS patch refresh. Do not replace it with the upstream CachyOS 7.2 patch, which has the stale hunks.
 - **DRM_GUD disabled** — unneeded USB-display driver trips clang `_FORTIFY_SOURCE` on `gud_connector.c`; re-enable only with an upstream fix
 
 ## GPU Details
@@ -35,9 +36,26 @@ The D700 is based on AMD's Tahiti XT GPU (same silicon as the Radeon HD 7970). I
 - **Kernel driver:** `amdgpu` built into kernel (`=y`) with SI support — requires `CONFIG_DRM_AMDGPU_SI=y`
 - **Firmware:** Tahiti: `tahiti_{ce,mc,me,pfp,rlc,smc}.bin` — Pitcairn: `pitcairn_{ce,mc,me,pfp,rlc,smc}.bin`
 - **Mesa driver:** `radeonsi` (OpenGL), `RADV` (Vulkan)
-- **Kernel 7.2:** Mature amdgpu SI support
+- **Linux 7.3 live ISO:** Both D700 Tahiti GPUs (PCI `1002:6798`) bound to `amdgpu`; accelerated OpenGL direct rendering via Mesa `radeonsi` 26.2.4 was observed for the default GPU and with `DRI_PRIME=1`. D300/D500 and GPU compute were not tested.
+- **Vulkan:** `vulkaninfo` found no drivers on the tested ISO (`vulkan-radeon` absent). A sibling ISO profile now includes it for a future rebuild; Vulkan has not been verified.
 
 ## Hardware Compatibility Matrix
+
+The matrix below records prior experience with the 7.2-based kernel and should not be read as 7.3 results. Observed 7.3 live-ISO results are listed separately below.
+
+### Linux 7.3 Live-ISO Observations
+
+- **Ethernet:** BCM57762 NICs bound to `tg3`; `enp11s0` linked and passed 5/5 pings to `1.1.1.1`. `enp12s0` was `NO-CARRIER`, not tested.
+- **Audio:** CS4208 analog and HDMI devices enumerated; audible playback was not reported.
+- **Wi-Fi:** BCM4360 bound to `bcma-pci-bridge`; wireless connectivity was not reported.
+- **Storage/USB:** NVMe advertised discard. An xHCI USB 3 root hub was present; attached storage ran at 480M, with no USB 3 speed test.
+- **Thermal:** `applesmc` reported fan speed of 791 RPM and thermal telemetry; `macfanctld` returned `failed` from `systemctl is-active`.
+- **Warnings:** Journal included an `apple_gmux` WARN trace, amdgpu plane alpha/blend warnings, and Thunderbolt device-link warnings.
+- **Scope:** These are basic live-ISO observations, not comprehensive component or stability tests.
+
+### Installed-System Update
+
+The installed Mac Pro 6,1 now runs `linux-macpro61` 7.3-1 (`uname -r`: `7.3.0-macpro61`). With `macpro61-support` 1-11 and `macfanctld` 0.6-5 installed, `macfanctld.service` is active/running. Sysfs reports `pwm1_enable=2` (AUTO), `fan1_min=1327`, and `fan1_input=1327` RPM. This supersedes the earlier live ISO's failed `macfanctld` result, caused by old preflight/daemon expectations for a legacy sysfs path. An ISO containing these updated fan packages has not yet been boot-tested.
 
 | Feature | Status | Notes |
 |---------|--------|-------|

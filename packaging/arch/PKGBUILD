@@ -2,8 +2,8 @@
 # linux-mac: Custom kernel for Mac Pro 6,1
 
 pkgbase=linux-macpro61
-pkgver=7.2.6
-pkgrel=3
+pkgver=7.3
+pkgrel=1
 pkgdesc='Custom Linux kernel for Mac Pro 6,1 — CachyOS base, BORE scheduler, built-in drivers'
 url='https://github.com/wolffcatskyy/linux-mac'
 arch=(x86_64)
@@ -34,17 +34,17 @@ _major=${pkgver%%.*}
 _minor=${pkgver#*.}
 _minor=${_minor%%.*}
 _srcver=${_major}.${_minor}
-_srcname=linux-7.2.6
+_srcname=linux-${pkgver}
 source=(
-    "https://www.kernel.org/pub/linux/kernel/v7.x/linux-7.2.6.tar.xz"
+    "https://www.kernel.org/pub/linux/kernel/v${_major}.x/${_srcname}.tar.xz"
     "config"
     "0001-bore.patch"
     "0002-macpro61-amdgpu-si-dpm-performance.patch"
 )
 
-sha256sums=('039aef84f2b0994aeda3f4fcfc3d02ec9d7a9bbb9020ea264c43f446c860f606'
-            'af79997358416ca8e77936acb9445a7276cea191bab16941dce888940deebeac'
-            '0c0be2b95ee10d8123bdd229699d441d989b62f52be355e4c94524d350dc786e'
+sha256sums=('87363c24f10e06321eb362765521094e94471f6bff8bce2d6b3e40f39f004953'
+            '428c65895a0c5cb18df329379c3cc493da42c5cbfd636433aa21d781c7836eec'
+            'f9213db6375a821977adacba1f7071a3d87bf5d3778550c1a1177a1606612fc9'
             '0eaf6106010e0324cf4e29821c86bb15ab762bcd588cc59551c12a6ac24ca929')
 
 export KBUILD_BUILD_HOST=macpro61
@@ -273,7 +273,10 @@ _package-headers() {
 
     echo "Installing objtool..."
     install -Dt "$builddir/tools/objtool" -m755 tools/objtool/objtool
-    install -Dt "$builddir/tools/bpf/resolve_btfids" -m755 tools/bpf/resolve_btfids/resolve_btfids
+    # Kbuild only produces resolve_btfids when BTF debug info is enabled.
+    if grep -q '^CONFIG_DEBUG_INFO_BTF=y$' .config; then
+        install -Dt "$builddir/tools/bpf/resolve_btfids" -m755 tools/bpf/resolve_btfids/resolve_btfids
+    fi
 
     echo "Installing headers..."
     cp -t "$builddir" -a include

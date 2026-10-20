@@ -1,12 +1,12 @@
 #!/bin/bash
 # linux-mac: Universal kernel build script
 # Usage: ./build.sh <model> [kernel-version]
-# Example: ./build.sh MacPro6,1 7.2.6
+# Example: ./build.sh MacPro6,1 7.3
 
 set -euo pipefail
 
 MODEL="${1:?Usage: $0 <model> [kernel-version]}"
-KVER="${2:-7.2.6}"
+KVER="${2:-7.3}"
 KVER_MAJOR="${KVER%%.*}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

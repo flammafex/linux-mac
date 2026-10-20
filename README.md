@@ -4,7 +4,11 @@ Custom Linux kernel for the Mac Pro 6,1 (Late 2013): the infamous "Trash Can". C
 
 ## What This Is
 
-A kernel config and PKGBUILD for Linux 7.2.6 (the latest as of 09/15/2026) targeting Mac Pro 6,1 hardware. CachyOS 08/09/2026 base with BORE scheduler and BBR3, Mac Pro drivers built-in, GPU firmware embedded in kernel.
+A kernel config and PKGBUILD targeting Mac Pro 6,1 hardware, with official Linux 7.3 as the project default. The BORE and AMDGPU patches apply to 7.3; package preparation and a repeat `olddefconfig` preserve the critical built-in drivers. The `linux-macpro61` 7.3-1 kernel and headers packages built successfully. A CachyOS MacPro ArchISO containing 7.3-1 was live-booted on a Mac Pro 6,1; `uname -r` reported `7.3.0-macpro61`.
+
+On that live ISO, both FirePro D700 GPUs (Tahiti, PCI `1002:6798`) bound to `amdgpu`; OpenGL direct rendering used accelerated Mesa `radeonsi` 26.2.4 for the default GPU and with `DRI_PRIME=1`. The `enp11s0` BCM57762 bound to `tg3`, linked, and passed 5/5 pings to `1.1.1.1`; `enp12s0` was `NO-CARRIER` and not tested. CS4208 analog and HDMI audio enumerated, but audible playback was not reported. NVMe advertised discard; xHCI exposed a USB 3 root hub, with attached storage operating at 480M (no USB 3 device-speed test). The BCM4360 Wi-Fi bound to `bcma-pci-bridge`, but wireless connectivity was not tested. `vulkaninfo` found no drivers because this ISO lacked `vulkan-radeon`; a sibling ISO profile now includes it for a future, not-yet-tested rebuild. The ISO's `macfanctld` reported `failed`; this was traced to old preflight/daemon expectations for a legacy sysfs path, not the installed-system service status. These are live-ISO observations on the tested D700 system, not comprehensive 7.3 validation; the hardware table describes prior-baseline experience.
+
+The installed Mac Pro 6,1 now runs `linux-macpro61` 7.3-1 (`uname -r`: `7.3.0-macpro61`). With `macpro61-support` 1-11 and `macfanctld` 0.6-5 installed, `macfanctld.service` is active/running; applesmc reports `pwm1_enable=2` (AUTO), `fan1_min=1327`, and `fan1_input=1327` RPM. This installed-system fan result supersedes the older live ISO's failed service observation. An ISO containing the updated fan packages has not yet been verified on hardware.
 
 - **All GPU variants** — D300 (Pitcairn), D500 (Tahiti), D700 (Tahiti XT), firmware baked in
 - **CachyOS performance** — BORE scheduler, BBR3 congestion control, `-march=ivybridge -O3`
@@ -15,22 +19,24 @@ A kernel config and PKGBUILD for Linux 7.2.6 (the latest as of 09/15/2026) targe
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| GPU (D300/D500/D700) | Working | amdgpu built-in, radeonsi/RADV via Mesa |
-| Display (DP/HDMI) | Working | Via amdgpu + DC |
-| Vulkan / OpenGL | Working | Mesa RADV / radeonsi |
+| GPU | D700 observed | Both Tahiti GPUs bound to amdgpu; accelerated OpenGL/radeonsi 26.2.4 observed. D300/D500 not tested here. |
+| Display (DP/HDMI) | Historical | Prior baseline used amdgpu + DC; the tested live ISO boots with `amdgpu.dc=0` |
+| Vulkan / OpenGL | Partial | OpenGL acceleration observed; Vulkan unavailable in tested ISO (`vulkan-radeon` absent), functionality unverified |
 | GPU Compute | Limited | OpenCL via rusticl or Vulkan — no ROCm for Southern Islands |
-| Ethernet | Working | Both ports via tg3 + Broadcom PHY |
+| Ethernet | Partial | `enp11s0` linked and ping passed; `enp12s0` NO-CARRIER, not tested |
 | Wi-Fi | Proprietary | `broadcom-wl-dkms` (AUR) + headers package |
-| Audio | Working | Intel HDA + Cirrus CS4206, HDMI/DP via amdgpu |
-| USB 3.0 | Working | xHCI |
+| Audio | Enumerated | CS4208 analog and HDMI; audible playback not reported |
+| USB | Partial | xHCI USB 3 root hub present; attached storage ran at 480M, no USB 3 speed test |
 | Thunderbolt 2 | Partial | Works with log spam |
 | NVMe + TRIM | Working | Built-in; enable `fstrim.timer` |
 | Bluetooth | Working | Broadcom via btusb |
 | KVM | Working | macOS Monterey virtualization (without GPU passthrough for now) |
-| Fans / Thermal | Working | applesmc + hwmon; install `macfanctld` (AUR) |
+| Fans / Thermal | Working (installed system) | `macfanctld` active; applesmc AUTO, fan at 1327 RPM. The older live ISO's service failed due to legacy sysfs-path expectations. |
 | Sleep/Wake | Disabled | Unreliable on this hardware |
 
 ## Quick Start
+
+Before replacing an installed kernel, verify an independently bootable fallback and sufficient ESP space; a successful live-USB boot does not establish a safe rollback path.
 
 ```bash
 git clone https://github.com/flammafex/linux-mac.git
@@ -63,7 +69,9 @@ sudo poweroff  # Apple EFI needs cold boot — never reboot when switching kerne
 
 | Status | Milestone |
 |--------|-----------|
-| Done | CachyOS 08/09/2026 base with BORE, BBR3, built-in amdgpu |
+| Done | Build Linux 7.3 kernel and headers packages |
+| Done | Live-boot CachyOS MacPro ArchISO with 7.3-1 on Mac Pro 6,1 (`uname -r`: `7.3.0-macpro61`) |
+| In progress | Verify Vulkan with the updated ISO, second NIC, and audio playback; updated ISO not yet boot-tested |
 | Done | All GPU variants, verified against lspci |
 | Done | KVM + macOS Monterey virtualization |
 | Done | CachyOS-based Mac Pro ISO (KDE Plasma) — [cachyos-macpro-iso](https://github.com/flammafex/cachyos-macpro-iso) |
@@ -72,15 +80,15 @@ sudo poweroff  # Apple EFI needs cold boot — never reboot when switching kerne
 
 ## Boot Configuration
 
-**systemd-boot** with ESP at \`/boot/efi/\` (FAT32).
+Boot setup varies by installation. On the development Mac Pro installation, `/boot` is the ESP and OpenCore's OpenLinuxBoot reads `/boot/loader/entries/macpro61.conf`; mkinitcpio's preset copies the kernel there and builds the initramfs. The separate `macpro61-support` package installs support hooks. The kernel package itself does not provide a custom boot-sync hook. The live USB has its own boot layout and entry.
 
 ### Gotchas
 
-1. **ESP vs /boot** - pacman installs to \`/boot/\` (root partition) but systemd-boot reads from \`/boot/efi/\` (ESP). The package install hook syncs automatically.
+1. **Check your boot path** - Confirm your ESP mount, bootloader entry, and kernel/initramfs destinations match your own installation; do not assume a `/boot/efi` sync mechanism.
 
-2. **Cold boot only** - Apple EFI needs full power cycle for GPU init. The package masks \`reboot.target\` and aliases \`reboot\` to \`poweroff\` automatically.
+2. **Keep an independent fallback** - Before upgrading, ensure a separately bootable fallback kernel/entry exists and is not overwritten. No independent fallback was confirmed on the development installation.
 
-3. **Boot entries** - Default: \`linux-macpro61.conf\` (custom kernel), fallback: \`arch-6.19.conf\` (stock).
+3. **Cold boot** - A full power-off may be needed when switching kernels on Apple hardware; this kernel package does not mask reboot or redirect it to poweroff.
 
 ## License
 
